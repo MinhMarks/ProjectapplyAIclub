@@ -62,9 +62,10 @@ class Loss_CategoricalCrossentropy(Loss):
             correct_confidences = y_pred_clip[range(samples), y_true] 
         elif len(y_true.shape) == 2: 
             correct_confidences = np.sum(y_pred_clip * y_true, axis=1 )
-            
+        
         negative_log_likelihood = -np.log(correct_confidences) 
         return negative_log_likelihood 
+
 
 X, y = spiral_data(100, 3) 
 
@@ -83,7 +84,51 @@ activation2.forward(dense2.output)
 loss_function = Loss_CategoricalCrossentropy() 
 loss = loss_function.calculate(activation2.output, y) 
 
-print(loss) 
+# navie upgrade 
+
+lowest_loss = 999999 
+
+best_dense1_weights = dense1.weights 
+best_dense1_bias = dense1.bias
+best_dense2_weights = dense2.weights 
+best_dense2_bias = dense2.bias
+
+
+
+
+for iteration in range(1,1000000): 
+    dense1.weights = 0.05 * np.random.randn(2,3) 
+    dense1.bias = 0.05 * np.random.randn(1,3) 
+    dense2.weights = 0.05 * np.random.randn(3,3) 
+    dense2.bias = 0.05 * np.random.randn(1,3) 
+
+    dense1.forward(X) 
+    activation1.forward(dense1.output)
+    dense2.forward(activation1.output) 
+    activation2.forward(dense2.output)
+    
+    loss = loss_function.calculate(activation2.output,y) 
+    
+    predictions = np.argmax(activation2.output, axis = 1) 
+    accuracy = np.mean(predictions==y) 
+    
+    if ( loss < lowest_loss ): 
+        with open('D:/Machine Learning/neural_networking/out.txt', 'a') as file:
+            file.write(str(loss)+" ")
+            file.write(str(accuracy)+" ")
+            file.write("\n")
+        lowest_loss = loss 
+        best_dense1_bias = dense1.bias 
+        best_dense1_weights = dense1.weights 
+        best_dense2_bias = dense2.bias 
+        best_dense2_weights = dense2.weights  
+    
+
+# with open('D:/Machine Learning/neural_networking/out.txt', 'w') as file:
+#     # file.write(np.array2string(y)) 
+#     # file.write(np.array2string(activation1.output))
+#     # file.write(np.array2string(activation2.output)) 
+#     file.write(str(loss)) 
 
 
 
