@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import nnfs 
 from nnfs.datasets import spiral_data 
-
+from nnfs.datasets import vertical_data
 
 nnfs.init() 
 np.random.seed(0) 
@@ -67,13 +67,13 @@ class Loss_CategoricalCrossentropy(Loss):
         return negative_log_likelihood 
 
 
-X, y = spiral_data(100, 3) 
+X, y = vertical_data(100, 3) 
 
 dense1 = Layer_Dense(2, 3) 
 activation1 = Activation_ReLU() 
 
 dense2 = Layer_Dense(3, 3) 
-activation2= Activation_Softmax()
+activation2= Activation_Softmax() 
 
 dense1.forward(X) 
 activation1.forward(dense1.output) 
@@ -88,19 +88,19 @@ loss = loss_function.calculate(activation2.output, y)
 
 lowest_loss = 999999 
 
-best_dense1_weights = dense1.weights 
-best_dense1_bias = dense1.bias
-best_dense2_weights = dense2.weights 
-best_dense2_bias = dense2.bias
+best_dense1_weights = dense1.weights.copy() 
+best_dense1_bias = dense1.bias.copy()
+best_dense2_weights = dense2.weights.copy()
+best_dense2_bias = dense2.bias.copy()
 
 
 
 
 for iteration in range(1,1000000): 
-    dense1.weights = 0.05 * np.random.randn(2,3) 
-    dense1.bias = 0.05 * np.random.randn(1,3) 
-    dense2.weights = 0.05 * np.random.randn(3,3) 
-    dense2.bias = 0.05 * np.random.randn(1,3) 
+    dense1.weights += 0.05 * np.random.randn(2,3) 
+    dense1.bias += 0.05 * np.random.randn(1,3) 
+    dense2.weights += 0.05 * np.random.randn(3,3) 
+    dense2.bias += 0.05 * np.random.randn(1,3) 
 
     dense1.forward(X) 
     activation1.forward(dense1.output)
@@ -111,18 +111,24 @@ for iteration in range(1,1000000):
     
     predictions = np.argmax(activation2.output, axis = 1) 
     accuracy = np.mean(predictions==y) 
-    
+    if loss == lowest_loss: 
+        print("Error")
     if ( loss < lowest_loss ): 
         with open('D:/Machine Learning/neural_networking/out.txt', 'a') as file:
-            file.write(str(loss)+" ")
+            file.write(str(iteration)+" "+str(loss)+" ")
             file.write(str(accuracy)+" ")
             file.write("\n")
-        lowest_loss = loss 
-        best_dense1_bias = dense1.bias 
-        best_dense1_weights = dense1.weights 
-        best_dense2_bias = dense2.bias 
-        best_dense2_weights = dense2.weights  
-    
+        lowest_loss = loss.copy() 
+        best_dense1_bias = dense1.bias.copy() 
+        best_dense1_weights = dense1.weights.copy()
+        best_dense2_bias = dense2.bias.copy() 
+        best_dense2_weights = dense2.weights.copy()  
+    else: 
+        dense1.weights = best_dense1_weights.copy()
+        dense1.bias = best_dense1_bias.copy()
+        dense2.weights = best_dense2_weights.copy()
+        dense2.bias = best_dense2_bias.copy() 
+        
 
 # with open('D:/Machine Learning/neural_networking/out.txt', 'w') as file:
 #     # file.write(np.array2string(y)) 
